@@ -33,11 +33,11 @@
 <body>
   <video id="camera" autoplay playsinline muted></video>
   <div id="info">alpha: ?</div>
-  <img id="target" src="kuva.png" width="200">
+  <img id="target" src="prof.PNG" width="200">
 
   <script>
     // Käynnistä kamera
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       .then(stream => {
         const video = document.getElementById("camera");
         video.srcObject = stream;
