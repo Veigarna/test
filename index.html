@@ -28,43 +28,63 @@
       transform: translate(-50%, -50%);
       display: none;
     }
+    #startButton {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: lime;
+      color: black;
+      cursor: pointer;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
   <video id="camera" autoplay playsinline muted></video>
   <div id="info">alpha: ?</div>
   <img id="target" src="prof.PNG" width="200">
+  <button id="startButton">Käynnistä kamera</button>
 
   <script>
-    // Käynnistä kamera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => {
-        const video = document.getElementById("camera");
-        video.srcObject = stream;
-        video.play().catch(err => console.error("Video ei käynnistynyt:", err));
-      })
-      .catch(err => {
-        console.error("Kamera ei toimi:", err);
-        alert("Kameraa ei voitu käynnistää: " + err.message);
-      });
+    const startButton = document.getElementById("startButton");
 
-    // iOS: sensorilupa klikkauksella
-    if (typeof DeviceOrientationEvent !== "undefined" &&
-        typeof DeviceOrientationEvent.requestPermission === "function") {
-      document.body.addEventListener("click", () => {
+    function startCamera() {
+      startButton.style.display = "none"; // Piilotetaan nappi kun käynnistetään
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+          const video = document.getElementById("camera");
+          video.srcObject = stream;
+          video.onloadedmetadata = () => {
+            video.play().catch(err => console.error("Video ei käynnistynyt:", err));
+          };
+        })
+        .catch(err => {
+          console.error("Kamera ei toimi:", err);
+          alert("Kameraa ei voitu käynnistää: " + err.message);
+        });
+
+      // iOS: sensorilupa klikkauksella
+      if (typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function") {
         DeviceOrientationEvent.requestPermission()
           .then(resp => console.log("Sensorilupa:", resp))
           .catch(console.error);
-      }, { once: true });
+      }
     }
 
-    // Näytä alpha-arvo ja kuva kun osoitetaan itään
+    startButton.addEventListener("click", startCamera);
+
+    // Suuntatiedon näyttö ja target-kuva
     window.addEventListener("deviceorientation", (e) => {
-      let alpha = e.alpha; // kompassikulma
+      let alpha = e.alpha;
       document.getElementById("info").textContent = "alpha: " + alpha;
 
-      let target = document.getElementById("target");
-      let suunta = 90;   // itä
+      const target = document.getElementById("target");
+      let suunta = 90; // itä
       let toleranssi = 15;
 
       if (alpha !== null &&
